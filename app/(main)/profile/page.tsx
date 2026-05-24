@@ -1,0 +1,17 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/store/auth-store";
+
+export default function ProfileRedirectPage() {
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+
+  useEffect(() => {
+    if (user) router.replace(`/profile/${user.id}`);
+    else router.replace("/login?next=/profile");
+  }, [user, router]);
+
+  return null;
+}
