@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+Sitemap: https://gtrmusic.com/sitemap.xml
+
+# Google AdSense
+User-agent: Googlebot
+Allow: /
