@@ -23,9 +23,13 @@ update public.profiles set role = 'admin' where email = 'بريدك@example.com'
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Publishable key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Secret key (سري) |
 | `NEXT_PUBLIC_SITE_URL` | `https://your-domain.vercel.app` |
-| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | اختياري |
+| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | من Google reCAPTCHA |
+| `NEXT_PUBLIC_ADSENSE_CLIENT_ID` | من Google AdSense `ca-pub-...` |
+| `NEXT_PUBLIC_ADSENSE_SLOT_*` | معرفات وحدات الإعلان |
 
 3. Deploy
+
+**ربط Google AdSense:** [docs/GOOGLE-ADSENSE-AR.md](GOOGLE-ADSENSE-AR.md)
 
 ## 3) بعد النشر
 

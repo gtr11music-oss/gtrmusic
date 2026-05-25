@@ -1,39 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Script from "next/script";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-
-const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+import { getRecaptchaSiteKey, isRecaptchaEnabled } from "@/lib/google/config";
 
 interface RecaptchaFieldProps {
   onVerify: (verified: boolean) => void;
   className?: string;
 }
 
-/** reCAPTCHA v2 checkbox — أو تحقق تجريبي عند غياب المفتاح */
+declare global {
+  interface Window {
+    grecaptcha?: {
+      render: (
+        el: HTMLElement,
+        opts: {
+          sitekey: string;
+          callback: () => void;
+          "expired-callback": () => void;
+        }
+      ) => number;
+    };
+  }
+}
+
 export function RecaptchaField({ onVerify, className }: RecaptchaFieldProps) {
-  const [checked, setChecked] = useState(false);
+  const siteKey = getRecaptchaSiteKey();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const widgetId = useRef<number | null>(null);
+  const [ready, setReady] = useState(false);
 
-  const handleChange = (v: boolean) => {
-    setChecked(v);
-    onVerify(v);
-  };
+  const renderWidget = useCallback(() => {
+    if (!siteKey || !containerRef.current || !window.grecaptcha) return;
+    if (widgetId.current !== null) return;
+    widgetId.current = window.grecaptcha.render(containerRef.current, {
+      sitekey: siteKey,
+      callback: () => onVerify(true),
+      "expired-callback": () => onVerify(false),
+    });
+  }, [siteKey, onVerify]);
 
-  if (SITE_KEY) {
+  useEffect(() => {
+    if (ready) renderWidget();
+  }, [ready, renderWidget]);
+
+  if (isRecaptchaEnabled() && siteKey) {
     return (
       <div className={cn("space-y-2", className)}>
-        <Label>التحقق الأمني (reCAPTCHA)</Label>
-        <div
-          className="g-recaptcha min-h-[78px] rounded-md border border-border bg-muted/30 p-2"
-          data-sitekey={SITE_KEY}
+        <Script
+          src="https://www.google.com/recaptcha/api.js?render=explicit"
+          async
+          defer
+          strategy="afterInteractive"
+          onReady={() => setReady(true)}
         />
-        <p className="text-xs text-muted-foreground">
-          أضف سكربت Google reCAPTCHA في الإنتاج
-        </p>
+        <Label>التحقق الأمني</Label>
+        <div ref={containerRef} className="min-h-[78px]" />
       </div>
     );
   }
+
+  const [checked, setChecked] = useState(false);
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -41,10 +70,13 @@ export function RecaptchaField({ onVerify, className }: RecaptchaFieldProps) {
         <input
           type="checkbox"
           checked={checked}
-          onChange={(e) => handleChange(e.target.checked)}
+          onChange={(e) => {
+            setChecked(e.target.checked);
+            onVerify(e.target.checked);
+          }}
           className="size-4 rounded border-border"
         />
-        لست روبوتاً (تحقق تجريبي — عيّن NEXT_PUBLIC_RECAPTCHA_SITE_KEY)
+        لست روبوتاً (أضف NEXT_PUBLIC_RECAPTCHA_SITE_KEY في Vercel)
       </Label>
     </div>
   );

@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { usePremiumStore } from "@/lib/store/premium-store";
+import { useAuthStore } from "@/lib/store/auth-store";
+import {
+  getAdSenseClientId,
+  getAdSenseSlot,
+  isAdSenseEnabled,
+} from "@/lib/google/config";
 
 interface AdSlotProps {
   placement: "sidebar" | "banner" | "in-feed" | "player";
@@ -18,10 +23,20 @@ const placementSizes: Record<AdSlotProps["placement"], string> = {
   player: "min-h-[50px] w-full max-w-md",
 };
 
-/** حاوية جاهزة لـ Google AdSense — استبدل data-ad-slot بمعرفك */
+declare global {
+  interface Window {
+    adsbygoogle?: Record<string, unknown>[];
+  }
+}
+
 export function AdSlot({ placement, className, label }: AdSlotProps) {
-  const isPremium = usePremiumStore((s) => s.isPremium);
+  const user = useAuthStore((s) => s.user);
+  const isPremium = user?.isPremium === true;
   const pathname = usePathname();
+  const pushed = useRef(false);
+  const clientId = getAdSenseClientId();
+  const slotId = getAdSenseSlot(placement);
+  const adsenseOn = isAdSenseEnabled() && Boolean(slotId);
 
   useEffect(() => {
     if (isPremium) return;
@@ -32,12 +47,22 @@ export function AdSlot({ placement, className, label }: AdSlotProps) {
     }).catch(() => {});
   }, [pathname, isPremium]);
 
+  useEffect(() => {
+    if (!adsenseOn || isPremium || pushed.current) return;
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      pushed.current = true;
+    } catch {
+      /* script still loading */
+    }
+  }, [adsenseOn, isPremium, placement]);
+
   if (isPremium) return null;
 
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-lg border border-dashed border-border/60 bg-muted/20",
+        "flex flex-col items-center justify-center rounded-lg border border-dashed border-border/60 bg-muted/20 overflow-hidden",
         placementSizes[placement],
         className
       )}
@@ -45,17 +70,30 @@ export function AdSlot({ placement, className, label }: AdSlotProps) {
       role="complementary"
       aria-label="إعلان"
     >
-      <p className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-        {label ?? "إعلان"}
-      </p>
-      <div
-        className="flex size-full items-center justify-center text-center text-xs text-muted-foreground"
-        data-ad-client="ca-pub-XXXXXXXX"
-        data-ad-slot={`gtr-${placement}`}
-      >
-        {/* Google AdSense: ins.adsbygoogle */}
-        <span>مساحة AdSense — {placement}</span>
-      </div>
+      {label && (
+        <p className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
+      )}
+      {adsenseOn ? (
+        <ins
+          className="adsbygoogle block w-full"
+          style={{ display: "block", minHeight: placement === "banner" ? 90 : 250 }}
+          data-ad-client={clientId}
+          data-ad-slot={slotId}
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        />
+      ) : (
+        <div className="flex size-full flex-col items-center justify-center p-4 text-center text-xs text-muted-foreground">
+          <span>مساحة إعلان — {placement}</span>
+          <span className="mt-1 opacity-70">
+            {clientId
+              ? "أضف NEXT_PUBLIC_ADSENSE_SLOT_* في Vercel"
+              : "أضف NEXT_PUBLIC_ADSENSE_CLIENT_ID في Vercel"}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
