@@ -9,6 +9,7 @@ interface PremiumState {
   expiresAt: string | null;
   subscribe: () => void;
   cancel: () => void;
+  setPremium: (active: boolean) => void;
 }
 
 export const usePremiumStore = create<PremiumState>()(
@@ -27,6 +28,14 @@ export const usePremiumStore = create<PremiumState>()(
       },
 
       cancel: () => set({ isPremium: false, expiresAt: null }),
+
+      setPremium: (active) =>
+        set({
+          isPremium: active,
+          expiresAt: active
+            ? new Date(Date.now() + 30 * 864e5).toISOString().split("T")[0]
+            : null,
+        }),
     }),
     { name: "gtrmusic-premium" }
   )

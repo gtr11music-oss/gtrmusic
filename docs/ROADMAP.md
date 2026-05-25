@@ -20,16 +20,16 @@
 | 14 | Artist upload pipeline (MP3 + cover → pending review) | ✅ Done |
 | 15 | Admin moderation queue (approve/reject songs) | ✅ Done |
 | 16 | Artist upgrade requests (`artist_requests`) | ✅ Done |
-| 17 | Support ticketing system (realtime) | 🔄 API ready |
+| 17 | Support ticketing system (realtime) | ✅ Done |
 | 18 | Search API + likes/follows engagement | ✅ Done |
 | 19 | Admin playlist CRUD | ✅ Done |
 | 20 | Premium gate: `is_premium` → download permission | ✅ Done |
 | 21 | Payments: Stripe/Paymob subscriptions + webhooks (no local card storage) | 🔄 Stripe stub |
 | 22 | Payouts: artist earnings + Mashreq bank metadata | ✅ Done |
 | 23 | AdSense logic: `ad_stats` page visits + projected earnings | ✅ Done |
-| 24 | Migrate UI from mock/Zustand to Supabase data layer | 🔄 In Progress |
-| 25 | Admin dashboard: users, content, earnings, ads | 🔄 In Progress |
-| 26 | Production hardening: monitoring, docs, seed, CI | 🔄 CI added |
+| 24 | Migrate UI from mock/Zustand to Supabase data layer | ✅ Done |
+| 25 | Admin dashboard: users, content, earnings, ads | ✅ Done |
+| 26 | Production hardening: monitoring, docs, seed, CI | ✅ Done |
 
 ## Roles (canonical)
 

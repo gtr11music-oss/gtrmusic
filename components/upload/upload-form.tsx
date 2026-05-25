@@ -20,6 +20,8 @@ import {
 } from "@/lib/security/upload-validation";
 import { checkRateLimit, detectSuspiciousActivity } from "@/lib/security/rate-limit";
 import { RecaptchaField } from "@/components/auth/recaptcha-field";
+import { useSupabaseAuth } from "@/lib/auth/client-auth";
+import { canUploadContent } from "@/lib/auth/roles";
 import type { UploadContentType } from "@/types";
 
 const genres = ["خليجي", "مصري", "لبناني", "بوب", "راب", "عربي", "بودكاست"];
@@ -28,6 +30,7 @@ export function UploadForm() {
   const addUpload = useUploadStore((s) => s.addUpload);
   const user = useAuthStore((s) => s.user);
   const addNotification = useNotificationsStore((s) => s.add);
+  const useSupabase = useSupabaseAuth();
   const [contentType, setContentType] = useState<UploadContentType>("music");
   const [title, setTitle] = useState("");
   const [artist, setArtist] = useState(user?.name ?? "");
@@ -82,9 +85,40 @@ export function UploadForm() {
     const audioFile = audioInput?.files?.[0];
     const imageFile = imageInput?.files?.[0];
 
-    if (audioFile || imageFile) {
-      const ok = await handleFiles(audioFile, imageFile);
-      if (!ok) return;
+    if (!audioFile) {
+      setErrors(["ملف الصوت مطلوب"]);
+      return;
+    }
+
+    const ok = await handleFiles(audioFile, imageFile);
+    if (!ok) return;
+
+    if (useSupabase && canUploadContent(user.role)) {
+      const form = new FormData();
+      form.append("title", title);
+      form.append("genre", contentType === "podcast" ? "بودكاست" : genre);
+      form.append("audio", audioFile);
+      if (imageFile) form.append("cover", imageFile);
+
+      const res = await fetch("/api/songs/upload", { method: "POST", body: form });
+      if (!res.ok) {
+        const j = await res.json();
+        setErrors([j.error ?? "فشل الرفع"]);
+        return;
+      }
+
+      addNotification({
+        userId: user.id,
+        title: "رفع قيد المراجعة",
+        body: "تم رفع الأغنية إلى Supabase للمراجعة",
+        type: "moderation",
+        href: "/dashboard",
+      });
+      setTitle("");
+      setDescription("");
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+      return;
     }
 
     addUpload({

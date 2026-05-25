@@ -3,8 +3,6 @@ import type { AppRole, ProfileRow } from "@/types/database";
 
 type Client = SupabaseClient;
 
-export type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
-
 /** Fetch the signed-in user's profile (Task 2+). Returns null if unauthenticated. */
 export async function getCurrentProfile(
   supabase: Client

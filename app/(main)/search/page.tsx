@@ -8,13 +8,24 @@ import { TrackRow } from "@/components/music/track-row";
 import { PodcastCard } from "@/components/podcast/podcast-card";
 import { ar } from "@/lib/i18n/ar";
 import { usePublicCatalog } from "@/hooks/use-public-catalog";
+import { useSupabaseSearch } from "@/hooks/use-supabase-search";
+import { isSupabaseConfigured } from "@/lib/env";
 import Image from "next/image";
 
 function SearchContent() {
   const params = useSearchParams();
   const q = params.get("q") ?? "";
   const catalog = usePublicCatalog();
-  const results = catalog.searchAll(q);
+  const remote = useSupabaseSearch(q);
+  const local = catalog.searchAll(q);
+
+  const results = isSupabaseConfigured() && q
+    ? {
+        tracks: [...local.tracks, ...remote.tracks.filter((t) => !local.tracks.some((l) => l.id === t.id))],
+        artists: [...local.artists, ...remote.artists.filter((a) => !local.artists.some((l) => l.id === a.id))],
+        podcasts: local.podcasts,
+      }
+    : local;
 
   const hasResults =
     results.tracks.length > 0 ||

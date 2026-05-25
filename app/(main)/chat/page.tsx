@@ -1,14 +1,9 @@
-import { ChatInterface } from "@/components/chat/chat-interface";
+import { ChatPageClient } from "@/components/chat/chat-page-client";
 
 export const metadata = {
-  title: "الدردشة المباشرة",
+  title: "الدعم والدردشة",
 };
 
 export default function ChatPage() {
-  return (
-    <div className="p-4 md:p-6">
-      <h1 className="mb-4 text-2xl font-bold">الدردشة المباشرة</h1>
-      <ChatInterface />
-    </div>
-  );
+  return <ChatPageClient />;
 }
