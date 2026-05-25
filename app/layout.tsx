@@ -32,6 +32,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   other: {
     "mobile-web-app-capable": "yes",
+    "google-adsense-account": "ca-pub-2002625596366472",
   },
 };
 
@@ -56,6 +57,12 @@ export default function RootLayout({
       <head>
         <link rel="apple-touch-icon" href="/icons/icon.svg" />
         <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+        <meta name="google-adsense-account" content="ca-pub-2002625596366472" />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2002625596366472"
+          crossOrigin="anonymous"
+        ></script>
       </head>
       <body className="min-h-full touch-manipulation font-sans antialiased">
         <AppProviders>{children}</AppProviders>
