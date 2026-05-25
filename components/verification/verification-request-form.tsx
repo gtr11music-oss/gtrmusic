@@ -18,18 +18,29 @@ export function VerificationRequestForm() {
     user ? s.getForUser(user.id) : undefined
   );
   const addNotification = useNotificationsStore((s) => s.add);
+
   const [links, setLinks] = useState("");
   const [docName, setDocName] = useState("");
   const [done, setDone] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!user) return;
+
     const socialLinks = links
       .split("\n")
       .map((l) => l.trim())
       .filter(Boolean);
-    submit(user.id, user.name, socialLinks, docName || undefined);
+
+    // تمرير البيانات ككائن واحد (Object) وهو التصرف البرمجي السليم
+    submit({
+      userId: user.id,
+      userName: user.name,
+      socialLinks,
+      documentName: docName || undefined,
+    });
+
     addNotification({
       userId: user.id,
       title: "طلب توثيق",
@@ -37,6 +48,7 @@ export function VerificationRequestForm() {
       type: "verification",
       href: "/dashboard",
     });
+
     setDone(true);
   };
 
@@ -59,6 +71,7 @@ export function VerificationRequestForm() {
           طلب شارة التوثيق
         </CardTitle>
       </CardHeader>
+
       <CardContent>
         {existing && (
           <Badge className="mb-4" variant="secondary">
@@ -66,10 +79,11 @@ export function VerificationRequestForm() {
             {existing.status === "pending"
               ? "قيد المراجعة"
               : existing.status === "approved"
-                ? "موافق"
-                : "مرفوض"}
+              ? "موافق"
+              : "مرفوض"}
           </Badge>
         )}
+
         {done || existing?.status === "pending" ? (
           <p className="text-muted-foreground">طلبك قيد المراجعة من الإدارة</p>
         ) : (
@@ -84,6 +98,7 @@ export function VerificationRequestForm() {
                 required
               />
             </div>
+
             <div>
               <Label htmlFor="doc">وثيقة الهوية (اسم الملف)</Label>
               <Input
@@ -99,6 +114,7 @@ export function VerificationRequestForm() {
                 </p>
               )}
             </div>
+
             <Button type="submit" className="w-full">
               إرسال الطلب
             </Button>
