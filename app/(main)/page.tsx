@@ -13,16 +13,11 @@ import { PersonalizedSections } from "@/components/ai/personalized-sections";
 import { AdSlot } from "@/components/ads/ad-slot";
 import { SponsorBanner } from "@/components/ads/sponsor-banner";
 import { ar } from "@/lib/i18n/ar";
-import {
-  artists,
-  tracks,
-  playlists,
-  podcastEpisodes,
-} from "@/lib/data/mock";
-import { getSmartTrending } from "@/lib/ai/recommendations";
+import { usePublicCatalog } from "@/hooks/use-public-catalog";
 
 export default function HomePage() {
-  const trending = getSmartTrending().slice(0, 6);
+  const catalog = usePublicCatalog();
+  const trending = catalog.smartTrending().slice(0, 6);
 
   return (
     <div className="pb-4">
@@ -45,15 +40,15 @@ export default function HomePage() {
       </SectionRow>
 
       <SectionRow title={ar.home.newReleases}>
-        {tracks.slice(0, 6).map((track) => (
+        {catalog.tracks.slice(0, 6).map((track) => (
           <div key={track.id} className="w-40 shrink-0 md:w-48">
-            <SongCard track={track} queue={tracks} />
+            <SongCard track={track} queue={catalog.tracks} />
           </div>
         ))}
       </SectionRow>
 
       <SectionRow title={ar.home.featuredPlaylists} href="/playlists">
-        {playlists.map((playlist) => (
+        {catalog.playlists.map((playlist) => (
           <div key={playlist.id} className="w-40 shrink-0 md:w-48">
             <PlaylistCard playlist={playlist} />
           </div>
@@ -63,14 +58,14 @@ export default function HomePage() {
       <section className="mb-10 px-4 md:px-8">
         <h2 className="mb-4 text-xl font-bold md:text-2xl">{ar.home.recommended}</h2>
         <div className="rounded-xl bg-gtr-surface/50 p-2">
-          {tracks.slice(0, 5).map((track, i) => (
-            <TrackRow key={track.id} track={track} index={i + 1} queue={tracks} />
+          {catalog.tracks.slice(0, 5).map((track, i) => (
+            <TrackRow key={track.id} track={track} index={i + 1} queue={catalog.tracks} />
           ))}
         </div>
       </section>
 
       <SectionRow title={ar.home.topArtists}>
-        {artists.map((artist) => (
+        {catalog.artists.map((artist) => (
           <Link
             key={artist.id}
             href={`/artist/${artist.id}`}
@@ -94,8 +89,8 @@ export default function HomePage() {
       </SectionRow>
 
       <SectionRow title={ar.home.podcastPicks} href="/podcasts">
-        {podcastEpisodes.map((ep) => (
-          <PodcastCard key={ep.id} episode={ep} queue={podcastEpisodes} />
+        {catalog.podcasts.map((ep) => (
+          <PodcastCard key={ep.id} episode={ep} queue={catalog.podcasts} />
         ))}
       </SectionRow>
     </div>

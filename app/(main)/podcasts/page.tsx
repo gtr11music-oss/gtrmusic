@@ -5,9 +5,12 @@ import { motion } from "framer-motion";
 import { Mic2 } from "lucide-react";
 import { PodcastCard } from "@/components/podcast/podcast-card";
 import { ar } from "@/lib/i18n/ar";
-import { podcastShows, podcastEpisodes } from "@/lib/data/mock";
+import { podcastShows } from "@/lib/data/mock";
+import { usePublicCatalog } from "@/hooks/use-public-catalog";
 
 export default function PodcastsPage() {
+  const catalog = usePublicCatalog();
+
   return (
     <div className="p-4 md:p-8">
       <motion.div
@@ -20,7 +23,9 @@ export default function PodcastsPage() {
         </span>
         <div>
           <h1 className="text-2xl font-bold md:text-3xl">{ar.nav.podcasts}</h1>
-          <p className="text-sm text-muted-foreground">استمع لأفضل البودكاست العربي</p>
+          <p className="text-sm text-muted-foreground">
+            {catalog.podcasts.length} حلقة متاحة
+          </p>
         </div>
       </motion.div>
 
@@ -35,7 +40,7 @@ export default function PodcastsPage() {
             className="flex gap-4 rounded-xl bg-gtr-surface p-4"
           >
             <div className="relative size-20 shrink-0 overflow-hidden rounded-lg">
-              <Image src={show.cover} alt={show.title} fill className="object-cover" sizes="80px" />
+              <Image src={show.cover} alt={show.title} fill className="object-cover" sizes="80px" loading="lazy" />
             </div>
             <div>
               <p className="font-semibold">{show.title}</p>
@@ -50,8 +55,8 @@ export default function PodcastsPage() {
 
       <h2 className="mb-4 text-lg font-semibold">أحدث الحلقات</h2>
       <div className="flex flex-wrap gap-4">
-        {podcastEpisodes.map((ep) => (
-          <PodcastCard key={ep.id} episode={ep} queue={podcastEpisodes} />
+        {catalog.podcasts.map((ep) => (
+          <PodcastCard key={ep.id} episode={ep} queue={catalog.podcasts} />
         ))}
       </div>
     </div>

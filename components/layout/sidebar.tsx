@@ -133,7 +133,13 @@ export function Sidebar() {
       <div className="border-t border-border p-4">
         {isAuthenticated ? (
           <div className="space-y-3">
-            <Link href="/profile" className="flex items-center gap-3 px-1 rounded-lg hover:bg-accent">
+            <Link href="/profile/edit" className="text-xs text-muted-foreground hover:text-primary">
+              تعديل الملف
+            </Link>
+            <Link href="/notifications" className="text-xs text-muted-foreground hover:text-primary">
+              الإشعارات
+            </Link>
+            <Link href="/profile" className="flex items-center gap-3 rounded-lg px-1 hover:bg-accent">
               <div className="size-9 rounded-full bg-gtr-surface bg-cover bg-center" style={{ backgroundImage: `url(${user?.avatar})` }} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{user?.name}</p>

@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { getTrackById } from "@/lib/data/mock";
 import { getSimilarTracks, classifyTrack } from "@/lib/ai/recommendations";
 import { TrackRow } from "@/components/music/track-row";
 import { SongCard } from "@/components/music/song-card";
@@ -16,16 +15,18 @@ import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 import { usePlayerStore } from "@/lib/store/player-store";
 import { Badge } from "@/components/ui/badge";
+import { usePublicCatalog } from "@/hooks/use-public-catalog";
 
 export default function TrackPage() {
   const params = useParams();
-  const track = getTrackById(params.id as string);
+  const catalog = usePublicCatalog();
+  const track = catalog.getTrackById(params.id as string);
   const playTrack = usePlayerStore((s) => s.playTrack);
 
   if (!track) {
     return (
       <div className="p-16 text-center">
-        <p className="text-muted-foreground">الأغنية غير موجودة</p>
+        <p className="text-muted-foreground">الأغنية غير موجودة أو لم تُنشر بعد</p>
         <Button asChild variant="link" className="mt-2">
           <Link href="/">الرئيسية</Link>
         </Button>
@@ -33,7 +34,7 @@ export default function TrackPage() {
     );
   }
 
-  const similar = getSimilarTracks(track);
+  const similar = getSimilarTracks(track, 6, catalog.tracks);
   const tags = classifyTrack(track);
 
   return (

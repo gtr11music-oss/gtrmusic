@@ -27,9 +27,7 @@ export function ChatInterface() {
   }, [messages.length, activeRoomId]);
 
   useEffect(() => {
-    const cleanup = simulateChatActivity(activeRoomId, (msg) => {
-      useChatStore.setState((s) => ({ messages: [...s.messages, msg] }));
-    });
+    const cleanup = simulateChatActivity(activeRoomId);
     return cleanup;
   }, [activeRoomId]);
 

@@ -1,15 +1,31 @@
 import type { UserRole } from "@/types";
+import type { AppRole } from "@/types/database";
 
-export function canAccessAdmin(role: UserRole) {
-  return role === "admin";
+/** Maps legacy UI roles to Supabase canonical roles (Task 12) */
+export function toAppRole(role: UserRole | AppRole): AppRole {
+  if (role === "verified_artist") return "artist";
+  if (role === "admin" || role === "artist" || role === "support" || role === "user")
+    return role;
+  return "user";
 }
 
-export function canUploadContent(role: UserRole) {
-  return role === "verified_artist" || role === "admin" || role === "user";
+export function canAccessAdmin(role: UserRole | AppRole) {
+  return toAppRole(role as UserRole) === "admin";
 }
 
-export function canMonetize(role: UserRole, verified?: boolean) {
-  return role === "verified_artist" || role === "admin" || verified;
+export function canAccessSupport(role: UserRole | AppRole) {
+  const r = toAppRole(role as UserRole);
+  return r === "support" || r === "admin";
+}
+
+export function canUploadContent(role: UserRole | AppRole) {
+  const r = toAppRole(role as UserRole);
+  return r === "artist" || r === "admin";
+}
+
+export function canMonetize(role: UserRole | AppRole, verified?: boolean) {
+  const r = toAppRole(role as UserRole);
+  return r === "artist" || r === "admin" || verified === true;
 }
 
 export const PROTECTED_ROUTES = {

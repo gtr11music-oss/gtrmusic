@@ -5,10 +5,11 @@ import { Flame } from "lucide-react";
 import { TrackRow } from "@/components/music/track-row";
 import { SongCard } from "@/components/music/song-card";
 import { ar } from "@/lib/i18n/ar";
-import { getSmartTrending } from "@/lib/ai/recommendations";
+import { usePublicCatalog } from "@/hooks/use-public-catalog";
 
 export default function TrendingPage() {
-  const trending = getSmartTrending();
+  const catalog = usePublicCatalog();
+  const trending = catalog.smartTrending();
 
   return (
     <div className="p-4 md:p-8">
@@ -23,7 +24,7 @@ export default function TrendingPage() {
         <div>
           <h1 className="text-2xl font-bold md:text-3xl">{ar.nav.trending}</h1>
           <p className="text-sm text-muted-foreground">
-            ترتيب ذكي بالذكاء الاصطناعي — استماع، حداثة، وتفاعل
+            ترتيب ذكي — يشمل المحتوى المعتمد من الرفع
           </p>
         </div>
       </motion.div>

@@ -12,13 +12,14 @@ import { ReportDialog } from "@/components/moderation/report-dialog";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { demoUser } from "@/lib/data/mock";
 import { useCommunityStore } from "@/lib/store/community-store";
-import { getTrackById } from "@/lib/data/mock";
+import { usePublicCatalog } from "@/hooks/use-public-catalog";
 import { TrackRow } from "@/components/music/track-row";
 
 export default function UserProfilePage() {
   const params = useParams();
   const id = params.id as string;
   const currentUser = useAuthStore((s) => s.user);
+  const catalog = usePublicCatalog();
   const likedIds = useCommunityStore((s) => s.likedTracks);
   const isOwn = currentUser?.id === id;
 
@@ -36,7 +37,7 @@ export default function UserProfilePage() {
             verified: false,
           };
 
-  const liked = likedIds.map((tid) => getTrackById(tid)).filter(Boolean);
+  const liked = likedIds.map((tid) => catalog.getTrackById(tid)).filter(Boolean);
 
   return (
     <div className="p-4 md:p-8">

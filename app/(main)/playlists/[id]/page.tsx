@@ -7,14 +7,21 @@ import { motion } from "framer-motion";
 import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TrackRow } from "@/components/music/track-row";
-import { getPlaylistById, getPlaylistTracks } from "@/lib/data/mock";
+import { getPlaylistById } from "@/lib/data/mock";
 import { usePlayerStore } from "@/lib/store/player-store";
+import { usePublicCatalog } from "@/hooks/use-public-catalog";
+import { useCommunityStore } from "@/lib/store/community-store";
+import type { Track } from "@/types";
 
 export default function PlaylistDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  const playlist = getPlaylistById(id);
+  const catalog = usePublicCatalog();
+  const userPlaylists = useCommunityStore((s) => s.userPlaylists);
   const playTrack = usePlayerStore((s) => s.playTrack);
+
+  const playlist =
+    getPlaylistById(id) ?? userPlaylists.find((p) => p.id === id);
 
   if (!playlist) {
     return (
@@ -27,7 +34,9 @@ export default function PlaylistDetailPage() {
     );
   }
 
-  const playlistTracks = getPlaylistTracks(playlist);
+  const playlistTracks = playlist.trackIds
+    .map((tid) => catalog.getTrackById(tid))
+    .filter((t): t is Track => Boolean(t));
 
   return (
     <div className="p-4 md:p-8">
@@ -51,7 +60,7 @@ export default function PlaylistDetailPage() {
           <h1 className="text-3xl font-bold md:text-5xl">{playlist.title}</h1>
           <p className="mt-2 text-muted-foreground">{playlist.description}</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            {playlistTracks.length} {playlistTracks.length === 1 ? "أغنية" : "أغاني"} • {playlist.owner}
+            {playlistTracks.length} أغاني • {playlist.owner}
           </p>
           <Button
             className="mt-4 gap-2 bg-gtr-accent text-black hover:bg-gtr-accent/90"

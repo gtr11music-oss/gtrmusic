@@ -21,8 +21,8 @@ export function computeTrendingScore(track: Track): number {
   return track.plays * 0.7 + (track.trending ? 50_000 : 0) + recency * 20_000;
 }
 
-export function getSmartTrending(): Track[] {
-  return [...tracks]
+export function getSmartTrending(source: Track[] = tracks): Track[] {
+  return [...source]
     .map((t) => ({ ...t, trendingScore: computeTrendingScore(t) }))
     .sort((a, b) => (b.trendingScore ?? 0) - (a.trendingScore ?? 0));
 }
@@ -40,9 +40,9 @@ function artistAffinity(history: ListeningEvent[], artistId: string): number {
 }
 
 /** توصيات مشابهة بناءً على النوع والفنان */
-export function getSimilarTracks(track: Track, limit = 6): Track[] {
+export function getSimilarTracks(track: Track, limit = 6, pool: Track[] = tracks): Track[] {
   const tags = classifyTrack(track);
-  return tracks
+  return pool
     .filter((t) => t.id !== track.id)
     .map((t) => {
       let score = 0;
@@ -60,14 +60,15 @@ export function getSimilarTracks(track: Track, limit = 6): Track[] {
 /** توصيات شخصية من سجل الاستماع */
 export function getPersonalizedTracks(
   history: ListeningEvent[],
-  limit = 8
+  limit = 8,
+  pool: Track[] = tracks
 ): Track[] {
   if (history.length === 0) {
     return getTrendingTracks().slice(0, limit);
   }
 
   const listened = new Set(history.map((h) => h.trackId));
-  return tracks
+  return pool
     .filter((t) => !listened.has(t.id))
     .map((t) => {
       let score = genreAffinity(history, t.genre) * 10;
@@ -104,16 +105,20 @@ export function getSuggestedArtists(
 }
 
 /** أقسام الصفحة الرئيسية المخصصة */
-export function getPersonalizedHomeSections(history: ListeningEvent[]) {
-  const forYou = getPersonalizedTracks(history, 6);
+export function getPersonalizedHomeSections(
+  history: ListeningEvent[],
+  pool: Track[] = tracks
+) {
+  const forYou = getPersonalizedTracks(history, 6, pool);
   const becauseYouListened =
     history.length > 0
       ? getSimilarTracks(
-          tracks.find((t) => t.id === history[0].trackId) ?? tracks[0],
-          6
+          pool.find((t) => t.id === history[0].trackId) ?? pool[0],
+          6,
+          pool
         )
       : forYou;
-  const smartTrending = getSmartTrending().slice(0, 6);
+  const smartTrending = getSmartTrending(pool).slice(0, 6);
   const suggestedArtists = getSuggestedArtists(history, 6);
 
   return { forYou, becauseYouListened, smartTrending, suggestedArtists };

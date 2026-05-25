@@ -19,7 +19,7 @@ export function AdminUploadsTab() {
   // ===== Stores =====
   const uploads = useUploadStore((s) => s.uploads);
   const updateStatus = useUploadStore((s) => s.updateStatus);
-
+  const publishItem = useUploadStore((s) => s.publishItem);
   const addNotification = useNotificationsStore((s) => s.add);
 
   // ===== Pending Uploads =====
@@ -36,7 +36,9 @@ export function AdminUploadsTab() {
 
   // ===== Approve =====
   const handleApprove = (item: (typeof allPending)[0]) => {
-    updateStatus(item.id, "published");
+    const inStore = uploads.some((u) => u.id === item.id);
+    if (inStore) updateStatus(item.id, "published");
+    else publishItem({ ...item, type: item.type ?? "music", status: "published" });
 
     if (item.uploadedBy) {
       addNotification({

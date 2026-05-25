@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { ChatMessage, ChatRoom } from "@/types";
 
 const rooms: ChatRoom[] = [
@@ -32,47 +33,56 @@ interface ChatState {
     text: string,
     userVerified?: boolean
   ) => void;
+  addMessage: (msg: ChatMessage) => void;
   messagesForRoom: (roomId: string) => ChatMessage[];
 }
 
-export const useChatStore = create<ChatState>((set, get) => ({
-  rooms,
-  messages: seedMessages,
-  activeRoomId: "general",
+export const useChatStore = create<ChatState>()(
+  persist(
+    (set, get) => ({
+      rooms,
+      messages: seedMessages,
+      activeRoomId: "general",
 
-  setActiveRoom: (activeRoomId) => set({ activeRoomId }),
+      setActiveRoom: (activeRoomId) => set({ activeRoomId }),
 
-  sendMessage: (roomId, userId, userName, text, userVerified) => {
-    const msg: ChatMessage = {
-      id: `m-${Date.now()}`,
-      roomId,
-      userId,
-      userName,
-      userVerified,
-      text,
-      createdAt: new Date().toISOString(),
-    };
-    set((s) => ({ messages: [...s.messages, msg] }));
-  },
+      sendMessage: (roomId, userId, userName, text, userVerified) => {
+        const msg: ChatMessage = {
+          id: `m-${Date.now()}`,
+          roomId,
+          userId,
+          userName,
+          userVerified,
+          text,
+          createdAt: new Date().toISOString(),
+        };
+        set((s) => ({ messages: [...s.messages, msg].slice(-500) }));
+      },
 
-  messagesForRoom: (roomId) =>
-    get()
-      .messages.filter((m) => m.roomId === roomId)
-      .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
-}));
+      addMessage: (msg) =>
+        set((s) => ({
+          messages: [...s.messages, msg].slice(-500),
+        })),
 
-/** محاكاة رسائل فورية من مستخدمين آخرين */
-export function simulateChatActivity(
-  roomId: string,
-  onMessage: (msg: ChatMessage) => void
-) {
+      messagesForRoom: (roomId) =>
+        get()
+          .messages.filter((m) => m.roomId === roomId)
+          .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    }),
+    { name: "gtrmusic-chat" }
+  )
+);
+
+/** محاكاة رسائل فورية */
+export function simulateChatActivity(roomId: string) {
   const samples = [
-    "أغنية رائعة!",
+    "أغنية رائعة! 🔥",
     "من يعرف فنان خليجي جديد؟",
-    "GTRmusic أفضل منصة",
+    "أحب قوائم التشغيل هنا",
+    "GTRmusic أفضل منصة عربية",
   ];
   const id = setInterval(() => {
-    onMessage({
+    useChatStore.getState().addMessage({
       id: `sim-${Date.now()}`,
       roomId,
       userId: "sim-user",
@@ -80,6 +90,6 @@ export function simulateChatActivity(
       text: samples[Math.floor(Math.random() * samples.length)],
       createdAt: new Date().toISOString(),
     });
-  }, 12000);
+  }, 15000);
   return () => clearInterval(id);
 }

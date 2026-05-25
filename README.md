@@ -45,9 +45,28 @@ npm run dev
 
 راجع [docs/NATIVE.md](docs/NATIVE.md) لـ Capacitor و React Native.
 
+## Supabase (Roadmap Task 1–2)
+
+**دليل عربي مفصل:** [docs/SETUP-SUPABASE-AR.md](docs/SETUP-SUPABASE-AR.md)
+
+```bash
+cp .env.example .env.local
+# أضف مفاتيح Supabase من Dashboard → Settings → API
+npm run dev
+# تحقق: http://localhost:3000/api/health
+```
+
+- Migration أساسي: `supabase/migrations/20250523120000_profiles.sql`
+- إصلاح إذا `app_role already exists`: `20250523120001_profiles_idempotent_repair.sql`
+
+Roadmap: [docs/ROADMAP.md](docs/ROADMAP.md)
+
 ## متغيرات البيئة
 
 ```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=
 NEXT_PUBLIC_CDN_URL=
 ```

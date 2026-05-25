@@ -5,14 +5,15 @@ import Image from "next/image";
 import { Sparkles, Brain } from "lucide-react";
 import { SectionRow } from "@/components/music/section-row";
 import { SongCard } from "@/components/music/song-card";
-import { getPersonalizedHomeSections } from "@/lib/ai/recommendations";
+import { getPersonalizedHomeSections, classifyTrack } from "@/lib/ai/recommendations";
 import { useHistoryStore } from "@/lib/store/history-store";
-import { classifyTrack } from "@/lib/ai/recommendations";
+import { usePublicCatalog } from "@/hooks/use-public-catalog";
 
 export function PersonalizedSections() {
   const events = useHistoryStore((s) => s.events);
+  const catalog = usePublicCatalog();
   const { forYou, becauseYouListened, smartTrending, suggestedArtists } =
-    getPersonalizedHomeSections(events);
+    getPersonalizedHomeSections(events, catalog.tracks);
 
   return (
     <>
@@ -20,7 +21,7 @@ export function PersonalizedSections() {
         <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 p-4">
           <Brain className="size-5 text-primary" />
           <p className="text-sm">
-            توصيات ذكية مبنية على سجل استماعك وتصنيف AI للأنواع
+            توصيات ذكية من سجل استماعك — {catalog.tracks.length} أغنية متاحة
           </p>
         </div>
       </section>

@@ -7,13 +7,14 @@ import { SearchBar } from "@/components/search/search-bar";
 import { TrackRow } from "@/components/music/track-row";
 import { PodcastCard } from "@/components/podcast/podcast-card";
 import { ar } from "@/lib/i18n/ar";
-import { searchAll } from "@/lib/data/mock";
+import { usePublicCatalog } from "@/hooks/use-public-catalog";
 import Image from "next/image";
 
 function SearchContent() {
   const params = useSearchParams();
   const q = params.get("q") ?? "";
-  const results = searchAll(q);
+  const catalog = usePublicCatalog();
+  const results = catalog.searchAll(q);
 
   const hasResults =
     results.tracks.length > 0 ||
@@ -34,9 +35,7 @@ function SearchContent() {
         <SearchBar defaultValue={q} />
       </div>
 
-      {!q && (
-        <p className="text-muted-foreground">{ar.search.placeholder}</p>
-      )}
+      {!q && <p className="text-muted-foreground">{ar.search.placeholder}</p>}
 
       {q && !hasResults && (
         <p className="text-muted-foreground">{ar.search.noResults}</p>
