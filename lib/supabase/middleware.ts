@@ -1,10 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import type { Database } from "@/types/database";
+import type { AppRole } from "@/types/database";
+import { enforceRbac } from "@/lib/auth/rbac-middleware";
+
+function withCookies(from: NextResponse, to: NextResponse) {
+  from.cookies.getAll().forEach((c) => {
+    to.cookies.set(c.name, c.value);
+  });
+  return to;
+}
 
 /**
- * Refreshes Supabase Auth session on every matched request.
- * Task 1 — required for SSR auth (Task 11+).
+ * Refreshes Supabase Auth session + RBAC (Tasks 11–12).
  */
 export async function updateSupabaseSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -16,7 +23,7 @@ export async function updateSupabaseSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  const supabase = createServerClient<Database>(url, anonKey, {
+  const supabase = createServerClient(url, anonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -31,7 +38,24 @@ export async function updateSupabaseSession(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let role: AppRole | null = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    role = (profile?.role as AppRole | undefined) ?? null;
+  }
+
+  const rbacRedirect = enforceRbac(request, role, Boolean(user));
+  if (rbacRedirect) {
+    return withCookies(supabaseResponse, rbacRedirect);
+  }
 
   return supabaseResponse;
 }

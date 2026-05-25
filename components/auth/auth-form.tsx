@@ -12,6 +12,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ar } from "@/lib/i18n/ar";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { RecaptchaField } from "@/components/auth/recaptcha-field";
+import {
+  useSupabaseAuth,
+  supabaseLogin,
+  supabaseRegister,
+} from "@/lib/auth/client-auth";
 
 interface AuthFormProps {
   mode: "login" | "register";
@@ -22,6 +27,8 @@ function AuthFormInner({ mode }: AuthFormProps) {
   const searchParams = useSearchParams();
   const login = useAuthStore((s) => s.login);
   const register = useAuthStore((s) => s.register);
+  const setSession = useAuthStore((s) => s.setSession);
+  const useSupabase = useSupabaseAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,19 +37,37 @@ function AuthFormInner({ mode }: AuthFormProps) {
 
   const isLogin = mode === "login";
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!captchaOk) {
       setError("أكمل التحقق الأمني");
       return;
     }
+
+    if (useSupabase) {
+      if (isLogin) {
+        const result = await supabaseLogin(email, password);
+        if (result.ok && result.user) {
+          setSession(result.user);
+          router.push(searchParams.get("next") || "/dashboard");
+        } else setError(result.error ?? "حدث خطأ");
+      } else {
+        const result = await supabaseRegister(name, email, password);
+        if (result.ok) {
+          setError(
+            "تم إنشاء الحساب. افتح بريدك واضغط رابط التأكيد ثم سجّل الدخول."
+          );
+        } else setError(result.error ?? "حدث خطأ");
+      }
+      return;
+    }
+
     const result = isLogin
       ? login(email, password)
       : register(name, email, password);
     if (result.ok) {
-      const next = searchParams.get("next") || "/dashboard";
-      router.push(next);
+      router.push(searchParams.get("next") || "/dashboard");
     } else setError(result.error ?? "حدث خطأ");
   };
 
@@ -58,7 +83,9 @@ function AuthFormInner({ mode }: AuthFormProps) {
             {isLogin ? ar.auth.welcomeBack : ar.auth.createAccount}
           </CardTitle>
           <CardDescription>
-            admin@ / artist@ / verified@ للأدوار • كلمة مرور 6+ أحرف
+            {useSupabase
+              ? "تأكيد البريد مطلوب • كلمة مرور 6+ أحرف"
+              : "admin@ / artist@ / verified@ للأدوار • كلمة مرور 6+ أحرف"}
           </CardDescription>
         </CardHeader>
         <CardContent>

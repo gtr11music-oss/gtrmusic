@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { usePremiumStore } from "@/lib/store/premium-store";
 
@@ -19,6 +21,16 @@ const placementSizes: Record<AdSlotProps["placement"], string> = {
 /** حاوية جاهزة لـ Google AdSense — استبدل data-ad-slot بمعرفك */
 export function AdSlot({ placement, className, label }: AdSlotProps) {
   const isPremium = usePremiumStore((s) => s.isPremium);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (isPremium) return;
+    fetch("/api/ads/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ page_path: pathname }),
+    }).catch(() => {});
+  }, [pathname, isPremium]);
 
   if (isPremium) return null;
 

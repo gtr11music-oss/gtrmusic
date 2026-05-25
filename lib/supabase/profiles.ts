@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, AppRole } from "@/types/database";
+import type { AppRole, ProfileRow } from "@/types/database";
 
-type Client = SupabaseClient<Database>;
+type Client = SupabaseClient;
 
 export type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 

@@ -15,6 +15,7 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   passwordHash: string | null;
+  setSession: (user: User | null) => void;
   login: (email: string, password: string) => { ok: boolean; error?: string };
   register: (name: string, email: string, password: string) => { ok: boolean; error?: string };
   logout: () => void;
@@ -36,6 +37,13 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       passwordHash: null,
+
+      setSession: (user) =>
+        set({
+          user,
+          isAuthenticated: Boolean(user),
+          passwordHash: null,
+        }),
 
       login: (email, password) => {
         if (!email.trim()) return { ok: false, error: "أدخل البريد الإلكتروني" };

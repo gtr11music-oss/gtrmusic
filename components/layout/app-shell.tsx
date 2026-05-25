@@ -4,10 +4,12 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { NowPlayingBar } from "@/components/player/now-playing-bar";
 import { AdSlot } from "@/components/ads/ad-slot";
 import { SiteFooter } from "@/components/layout/footer";
+import { SessionSync } from "@/components/auth/session-sync";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-dvh overflow-hidden bg-background">
+      <SessionSync />
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />

@@ -97,6 +97,7 @@ export interface User {
   role: UserRole;
   joinedAt: string;
   verified?: boolean;
+  isPremium?: boolean;
   strikes?: number;
   bio?: string;
   socialLinks?: string[];

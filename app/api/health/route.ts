@@ -19,14 +19,23 @@ export async function GET() {
     try {
       const { url, anonKey } = getPublicSupabaseConfig();
       const supabase = createClient(url, anonKey);
-      const { error } = await supabase.from("profiles").select("id").limit(1);
-      if (error) {
-        if (error.code === "42P01") {
-          checks.supabase_connection =
-            "connected (profiles missing — run Task 2 migration)";
-        } else {
-          checks.supabase_connection = `error: ${error.message}`;
-        }
+      const { error: profilesErr } = await supabase
+        .from("profiles")
+        .select("id")
+        .limit(1);
+      const { error: songsErr } = await supabase
+        .from("songs")
+        .select("id")
+        .limit(1);
+
+      if (profilesErr?.code === "42P01") {
+        checks.supabase_connection =
+          "connected (profiles missing — run Task 2 migration)";
+      } else if (songsErr?.code === "42P01") {
+        checks.supabase_connection =
+          "connected (run RUN_TASKS_3_TO_10.sql in Supabase)";
+      } else if (profilesErr || songsErr) {
+        checks.supabase_connection = `error: ${profilesErr?.message ?? songsErr?.message}`;
       } else {
         checks.supabase_connection = "connected";
       }
@@ -46,7 +55,7 @@ export async function GET() {
       service: "gtrmusic",
       status: healthy ? "healthy" : "degraded",
       checks,
-      roadmap_task: 2,
+      roadmap_task: 10,
     },
     { status: healthy ? 200 : 503 }
   );

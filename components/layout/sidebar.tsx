@@ -25,6 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ar } from "@/lib/i18n/ar";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { useSupabaseAuth, supabaseLogout } from "@/lib/auth/client-auth";
 import { canAccessAdmin } from "@/lib/auth/roles";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,12 @@ const premiumNav = { href: "/premium", label: "Premium", icon: Crown } as const;
 export function Sidebar() {
   const pathname = usePathname();
   const { isAuthenticated, user, logout } = useAuthStore();
+  const useSupabase = useSupabaseAuth();
+
+  const handleLogout = async () => {
+    if (useSupabase) await supabaseLogout();
+    logout();
+  };
 
   return (
     <aside className="hidden h-full w-64 shrink-0 flex-col border-e border-border bg-sidebar md:flex">
@@ -151,7 +158,7 @@ export function Sidebar() {
               <Link href="/legal/terms" className="hover:text-foreground">شروط</Link>
               <Link href="/legal/contact" className="hover:text-foreground">اتصل</Link>
             </div>
-            <Button variant="ghost" className="w-full justify-start gap-2" onClick={logout}>
+            <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
               <LogOut className="size-4" />
               {ar.nav.logout}
             </Button>
