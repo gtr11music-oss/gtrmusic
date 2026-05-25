@@ -16,6 +16,7 @@ import { useUploadStore } from "@/lib/store/upload-store";
 import { useNotificationsStore } from "@/lib/store/notifications-store";
 import { useSupabaseAuth } from "@/lib/auth/client-auth";
 import { isSupabaseConfigured } from "@/lib/env";
+import { isDemoModeAllowed } from "@/lib/config/app-mode";
 import { getPublicSupabaseConfig } from "@/lib/env";
 
 type PendingSong = {
@@ -93,6 +94,7 @@ export function AdminUploadsTab() {
   };
 
   const allMock = [...mockPending, ...userPending];
+  const showLocalMock = isDemoModeAllowed();
 
   return (
     <div className="space-y-6">
@@ -166,6 +168,7 @@ export function AdminUploadsTab() {
         </Card>
       )}
 
+      {showLocalMock && (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -205,6 +208,7 @@ export function AdminUploadsTab() {
           )}
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }

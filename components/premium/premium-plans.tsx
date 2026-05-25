@@ -11,12 +11,16 @@ import {
   PREMIUM_PRICE_MONTHLY,
 } from "@/lib/store/premium-store";
 import { AdSlot } from "@/components/ads/ad-slot";
+import { useAuthStore } from "@/lib/store/auth-store";
+import { isProductionApp } from "@/lib/config/app-mode";
 
 export function PremiumPlans() {
-  const isPremium = usePremiumStore((s) => s.isPremium);
+  const user = useAuthStore((s) => s.user);
+  const storePremium = usePremiumStore((s) => s.isPremium);
+  const isPremium = user?.isPremium === true || storePremium;
   const expiresAt = usePremiumStore((s) => s.expiresAt);
-  const subscribe = usePremiumStore((s) => s.subscribe);
   const cancel = usePremiumStore((s) => s.cancel);
+  const production = isProductionApp();
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-4 md:p-8">
@@ -58,13 +62,22 @@ export function PremiumPlans() {
               </Button>
             </div>
           ) : (
-            <Button
-              className="w-full bg-gtr-accent text-black hover:bg-gtr-accent/90"
-              size="lg"
-              onClick={subscribe}
-            >
-              اشترك الآن (تجريبي)
-            </Button>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                {production
+                  ? "الاشتراك عبر Stripe/Paymob — فعّل STRIPE_SECRET_KEY وربط webhook في Vercel."
+                  : "للتجربة المحلية فقط: NEXT_PUBLIC_ALLOW_DEMO_MODE=true"}
+              </p>
+              {!production && (
+                <Button
+                  className="w-full bg-gtr-accent text-black hover:bg-gtr-accent/90"
+                  size="lg"
+                  disabled
+                >
+                  الدفع الإلكتروني قريباً
+                </Button>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>

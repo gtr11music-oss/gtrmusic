@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireRole } from "@/lib/auth/api-guard";
 import { getServiceRoleKey, isSupabaseConfigured } from "@/lib/env";
+import { isProductionApp } from "@/lib/config/app-mode";
 
 const RPM_EGP = 0.02;
 
@@ -11,6 +12,12 @@ export async function GET() {
   if (auth.error) return auth.error;
 
   if (!isSupabaseConfigured() || !getServiceRoleKey()) {
+    if (isProductionApp()) {
+      return NextResponse.json(
+        { error: "SUPABASE_SERVICE_ROLE_KEY مطلوب في الإنتاج" },
+        { status: 503 }
+      );
+    }
     return NextResponse.json({ mode: "mock" });
   }
 

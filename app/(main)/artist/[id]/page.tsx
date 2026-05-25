@@ -9,12 +9,13 @@ import { TrackRow } from "@/components/music/track-row";
 import { FollowButton } from "@/components/community/follow-button";
 import { ReportDialog } from "@/components/moderation/report-dialog";
 import { AdSlot } from "@/components/ads/ad-slot";
-import { getArtistById, getTracksByArtist } from "@/lib/data/mock";
+import { usePublicCatalog } from "@/hooks/use-public-catalog";
 import { usePlayerStore } from "@/lib/store/player-store";
 
 export default function ArtistPage() {
   const params = useParams();
-  const artist = getArtistById(params.id as string);
+  const catalog = usePublicCatalog();
+  const artist = catalog.getArtistById(params.id as string);
   const playTrack = usePlayerStore((s) => s.playTrack);
 
   if (!artist) {
@@ -25,7 +26,7 @@ export default function ArtistPage() {
     );
   }
 
-  const artistTracks = getTracksByArtist(artist.id);
+  const artistTracks = catalog.tracks.filter((t) => t.artistId === artist.id);
 
   return (
     <div className="p-4 md:p-8">
@@ -41,37 +42,42 @@ export default function ArtistPage() {
           />
         </div>
         <div className="flex-1">
-          <p className="text-sm text-muted-foreground">فنان</p>
-          <h1 className="flex items-center gap-2 text-3xl font-bold md:text-4xl">
+          <h1 className="flex items-center gap-2 text-3xl font-bold">
             {artist.name}
             {artist.verified && <BadgeCheck className="size-7 text-primary" />}
           </h1>
-          {artist.bio && <p className="mt-2 text-muted-foreground">{artist.bio}</p>}
-          <p className="mt-2 text-sm">
-            {(artist.followers ?? 0).toLocaleString("ar-EG")} متابع •{" "}
-            {(artist.totalStreams ?? 0).toLocaleString("ar-EG")} تشغيل
+          <p className="mt-2 text-muted-foreground">
+            {artist.followers?.toLocaleString() ?? 0} متابع
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <FollowButton artistId={artist.id} />
-            <Button
-              className="bg-gtr-accent text-black"
-              onClick={() => artistTracks[0] && playTrack(artistTracks[0], artistTracks)}
-            >
-              تشغيل
-            </Button>
             <ReportDialog targetType="user" targetId={artist.id} targetLabel={artist.name} />
+            {artistTracks[0] && (
+              <Button onClick={() => playTrack(artistTracks[0], artistTracks)}>
+                تشغيل
+              </Button>
+            )}
           </div>
         </div>
       </div>
-
-      <AdSlot placement="banner" className="mb-8" />
-
-      <h2 className="mb-4 text-xl font-bold">الأغاني الشائعة</h2>
-      <div className="rounded-xl bg-gtr-surface/50 p-2">
-        {artistTracks.map((track, i) => (
-          <TrackRow key={track.id} track={track} index={i + 1} queue={artistTracks} />
-        ))}
-      </div>
+      <AdSlot placement="banner" />
+      <section>
+        <h2 className="mb-4 text-xl font-semibold">الأغاني</h2>
+        {artistTracks.length === 0 ? (
+          <p className="text-muted-foreground">لا أغاني منشورة بعد</p>
+        ) : (
+          <div className="rounded-xl bg-gtr-surface/50 p-2">
+            {artistTracks.map((track, i) => (
+              <TrackRow
+                key={track.id}
+                track={track}
+                index={i + 1}
+                queue={artistTracks}
+              />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

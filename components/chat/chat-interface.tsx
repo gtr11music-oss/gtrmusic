@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { useChatStore, simulateChatActivity } from "@/lib/store/chat-store";
+import { isDemoModeAllowed } from "@/lib/config/app-mode";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ export function ChatInterface() {
   }, [messages.length, activeRoomId]);
 
   useEffect(() => {
+    if (!isDemoModeAllowed()) return;
     const cleanup = simulateChatActivity(activeRoomId);
     return cleanup;
   }, [activeRoomId]);

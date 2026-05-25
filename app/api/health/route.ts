@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { isSupabaseConfigured, getPublicSupabaseConfig } from "@/lib/env";
+import { isSupabaseConfigured, getPublicSupabaseConfig, getServiceRoleKey } from "@/lib/env";
+import { isProductionApp } from "@/lib/config/app-mode";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,9 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const checks: Record<string, string> = {
     app: "ok",
+    mode: isProductionApp() ? "production" : "development",
     supabase_configured: isSupabaseConfigured() ? "yes" : "no",
+    service_role: getServiceRoleKey() ? "yes" : "no",
     supabase_connection: "skipped",
   };
 
@@ -55,7 +58,7 @@ export async function GET() {
       service: "gtrmusic",
       status: healthy ? "healthy" : "degraded",
       checks,
-      roadmap_task: 10,
+      version: "production",
     },
     { status: healthy ? 200 : 503 }
   );

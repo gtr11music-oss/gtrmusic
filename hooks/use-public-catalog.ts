@@ -3,35 +3,61 @@
 import { useEffect, useMemo, useState } from "react";
 import { useUploadStore } from "@/lib/store/upload-store";
 import { buildPublicCatalog } from "@/lib/catalog/public-catalog";
-import { fetchApprovedTracksFromApi } from "@/lib/catalog/fetch-supabase-songs";
+import {
+  buildCatalogFromApi,
+  type ApiCatalogPayload,
+  type PublicCatalog,
+} from "@/lib/catalog/build-api-catalog";
+import { isDemoModeAllowed, isProductionApp } from "@/lib/config/app-mode";
 import { isSupabaseConfigured } from "@/lib/env";
-import type { Track, UploadItem } from "@/types";
+import type { UploadItem } from "@/types";
+
+const emptyApi: ApiCatalogPayload = {
+  tracks: [],
+  artists: [],
+  playlists: [],
+  podcasts: [],
+};
 
 function filterPublished(uploads: UploadItem[]) {
   return uploads.filter((u) => u.status === "published");
 }
 
-/**
- * لا تستخدم getPublished() داخل selector — يُرجع مصفوفة جديدة كل render
- * فيسبب: "getServerSnapshot should be cached to avoid an infinite loop"
- */
-export function usePublicCatalog() {
+export function usePublicCatalog(): PublicCatalog {
   const uploads = useUploadStore((s) => s.uploads);
-  const [remoteTracks, setRemoteTracks] = useState<Track[]>([]);
+  const [apiData, setApiData] = useState<ApiCatalogPayload | null>(null);
+  const useProductionData =
+    isProductionApp() || (isSupabaseConfigured() && !isDemoModeAllowed());
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
-    fetchApprovedTracksFromApi().then(setRemoteTracks);
+    fetch("/api/catalog")
+      .then((r) => r.json())
+      .then((j) => {
+        setApiData({
+          tracks: j.tracks ?? [],
+          artists: j.artists ?? [],
+          playlists: j.playlists ?? [],
+          podcasts: j.podcasts ?? [],
+        });
+      })
+      .catch(() => setApiData(emptyApi));
   }, []);
 
-  return useMemo(() => {
-    const mockCatalog = buildPublicCatalog(filterPublished(uploads));
-    if (remoteTracks.length === 0) return mockCatalog;
-    const trackIds = new Set(mockCatalog.tracks.map((t) => t.id));
-    const mergedTracks = [
-      ...mockCatalog.tracks,
-      ...remoteTracks.filter((t) => !trackIds.has(t.id)),
-    ];
-    return { ...mockCatalog, tracks: mergedTracks };
-  }, [uploads, remoteTracks]);
+  return useMemo((): PublicCatalog => {
+    const api = apiData ?? emptyApi;
+
+    if (useProductionData) {
+      return buildCatalogFromApi(api);
+    }
+
+    const mockTracks = buildPublicCatalog(filterPublished(uploads)).tracks;
+    const trackIds = new Set(mockTracks.map((t) => t.id));
+    return buildCatalogFromApi({
+      tracks: [...mockTracks, ...api.tracks.filter((t) => !trackIds.has(t.id))],
+      artists: api.artists.length ? api.artists : buildPublicCatalog([]).artists,
+      playlists: api.playlists.length ? api.playlists : buildPublicCatalog([]).playlists,
+      podcasts: buildPublicCatalog(filterPublished(uploads)).podcasts,
+    });
+  }, [uploads, apiData, useProductionData]);
 }

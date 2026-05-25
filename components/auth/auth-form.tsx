@@ -17,6 +17,8 @@ import {
   supabaseLogin,
   supabaseRegister,
 } from "@/lib/auth/client-auth";
+import { isDemoModeAllowed, isProductionApp } from "@/lib/config/app-mode";
+import { isSupabaseConfigured } from "@/lib/env";
 
 interface AuthFormProps {
   mode: "login" | "register";
@@ -29,6 +31,7 @@ function AuthFormInner({ mode }: AuthFormProps) {
   const register = useAuthStore((s) => s.register);
   const setSession = useAuthStore((s) => s.setSession);
   const useSupabase = useSupabaseAuth();
+  const production = isProductionApp();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,7 +48,12 @@ function AuthFormInner({ mode }: AuthFormProps) {
       return;
     }
 
-    if (useSupabase) {
+    if (production && !isSupabaseConfigured()) {
+      setError("المنصة غير مهيأة للإنتاج — راجع إعدادات Supabase");
+      return;
+    }
+
+    if (useSupabase || production) {
       if (isLogin) {
         const result = await supabaseLogin(email, password);
         if (result.ok && result.user) {
@@ -60,6 +68,11 @@ function AuthFormInner({ mode }: AuthFormProps) {
           );
         } else setError(result.error ?? "حدث خطأ");
       }
+      return;
+    }
+
+    if (!isDemoModeAllowed()) {
+      setError("تسجيل الدخول التجريبي معطّل. فعّل Supabase في .env.local");
       return;
     }
 
@@ -83,9 +96,9 @@ function AuthFormInner({ mode }: AuthFormProps) {
             {isLogin ? ar.auth.welcomeBack : ar.auth.createAccount}
           </CardTitle>
           <CardDescription>
-            {useSupabase
+            {production || useSupabase
               ? "تأكيد البريد مطلوب • كلمة مرور 6+ أحرف"
-              : "admin@ / artist@ / verified@ للأدوار • كلمة مرور 6+ أحرف"}
+              : "وضع تجريبي محلي فقط — admin@ / artist@"}
           </CardDescription>
         </CardHeader>
         <CardContent>

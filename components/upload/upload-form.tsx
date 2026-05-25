@@ -22,6 +22,8 @@ import { checkRateLimit, detectSuspiciousActivity } from "@/lib/security/rate-li
 import { RecaptchaField } from "@/components/auth/recaptcha-field";
 import { useSupabaseAuth } from "@/lib/auth/client-auth";
 import { canUploadContent } from "@/lib/auth/roles";
+import { isDemoModeAllowed, isProductionApp } from "@/lib/config/app-mode";
+import { isSupabaseConfigured } from "@/lib/env";
 import type { UploadContentType } from "@/types";
 
 const genres = ["خليجي", "مصري", "لبناني", "بوب", "راب", "عربي", "بودكاست"];
@@ -93,7 +95,11 @@ export function UploadForm() {
     const ok = await handleFiles(audioFile, imageFile);
     if (!ok) return;
 
-    if (useSupabase && canUploadContent(user.role)) {
+    if (
+      (useSupabase || isProductionApp()) &&
+      isSupabaseConfigured() &&
+      canUploadContent(user.role)
+    ) {
       const form = new FormData();
       form.append("title", title);
       form.append("genre", contentType === "podcast" ? "بودكاست" : genre);
@@ -118,6 +124,11 @@ export function UploadForm() {
       setDescription("");
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
+      return;
+    }
+
+    if (isProductionApp() || !isDemoModeAllowed()) {
+      setErrors(["الرفع يتطلب Supabase — فعّل المفاتيح في .env"]);
       return;
     }
 

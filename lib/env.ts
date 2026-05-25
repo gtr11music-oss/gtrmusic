@@ -44,3 +44,15 @@ export function assertPublicEnv(): void {
     }
   }
 }
+
+/** Production deploy checklist */
+export function assertProductionEnv(): void {
+  assertPublicEnv();
+  if (!getServiceRoleKey()) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is required in production");
+  }
+  const site = getSiteUrl();
+  if (site.includes("localhost")) {
+    throw new Error("NEXT_PUBLIC_SITE_URL must be your production domain");
+  }
+}

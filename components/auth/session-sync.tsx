@@ -19,6 +19,9 @@ export function SessionSync() {
       if (user) {
         setSession(user);
         setPremium(user.isPremium === true);
+      } else {
+        setSession(null);
+        setPremium(false);
       }
     });
   }, [useSupabase, setSession, setPremium, pathname]);

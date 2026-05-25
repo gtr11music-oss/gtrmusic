@@ -5,6 +5,7 @@ import { usePlayerStore } from "@/lib/store/player-store";
 import { useHistoryStore } from "@/lib/store/history-store";
 import { useMonetizationStore } from "@/lib/store/monetization-store";
 import { applyStreamingOptimizations, prefetchAudio } from "@/lib/performance/audio-buffer";
+import { resolveAudioUrl } from "@/lib/catalog/resolve-audio-url";
 
 export function AudioEngine() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -49,12 +50,17 @@ export function AudioEngine() {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !src) return;
-    audio.src = src;
-    audio.load();
-    if (isPlaying) {
-      void audio.play().catch(() => setPlaying(false));
-    }
-  }, [src, currentIndex, setPlaying]);
+    let cancelled = false;
+    resolveAudioUrl(src).then((resolved) => {
+      if (cancelled) return;
+      audio.src = resolved;
+      audio.load();
+      if (isPlaying) void audio.play().catch(() => setPlaying(false));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [src, currentIndex, isPlaying, setPlaying]);
 
   useEffect(() => {
     const audio = audioRef.current;

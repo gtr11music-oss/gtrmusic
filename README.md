@@ -45,6 +45,12 @@ npm run dev
 
 راجع [docs/NATIVE.md](docs/NATIVE.md) لـ Capacitor و React Native.
 
+## النشر الإنتاجي (Production)
+
+**دليل النشر الكامل:** [docs/DEPLOY-PRODUCTION-AR.md](docs/DEPLOY-PRODUCTION-AR.md)
+
+على Vercel عيّن `NEXT_PUBLIC_APP_MODE=production` وجميع مفاتيح Supabase.
+
 ## Supabase (Roadmap Task 1–2)
 
 **دليل عربي مفصل:** [docs/SETUP-SUPABASE-AR.md](docs/SETUP-SUPABASE-AR.md)
