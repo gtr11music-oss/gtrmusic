@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo } from "next/font/google";
 import { AppProviders } from "@/components/providers/app-providers";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const cairo = Cairo({
@@ -66,6 +67,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full touch-manipulation font-sans antialiased">
         <AppProviders>{children}</AppProviders>
+        <Analytics />
       </body>
     </html>
   );
